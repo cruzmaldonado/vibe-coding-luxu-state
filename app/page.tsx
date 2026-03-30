@@ -2,11 +2,26 @@ import React from "react";
 import NavBar from "@/components/ui/NavBar";
 import HeroSearch from "@/components/home/HeroSearch";
 import { FeaturedPropertyCard, PropertyCard } from "@/components/home/PropertyCard";
-import { mockProperties } from "@/lib/data/mock-properties";
+import PaginationControls from "@/components/ui/PaginationControls";
+import { getProperties, getFeaturedProperties } from "@/lib/data/properties";
 
-export default function Home() {
-  const featuredProperties = mockProperties.filter((p) => p.featured);
-  const newProperties = mockProperties.filter((p) => !p.featured);
+const PAGE_SIZE = 8;
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const resolvedParams = await searchParams;
+  const currentPage = Math.max(1, Number(resolvedParams.page) || 1);
+
+  const [featuredProperties, { data: newProperties, totalCount }] =
+    await Promise.all([
+      getFeaturedProperties(),
+      getProperties(currentPage, PAGE_SIZE),
+    ]);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <>
@@ -33,7 +48,22 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {featuredProperties.map((property) => (
-              <FeaturedPropertyCard key={property.id} property={property} />
+              <FeaturedPropertyCard
+                key={property.id}
+                property={{
+                  id: property.id,
+                  title: property.title,
+                  priceFormatted: property.price_formatted,
+                  location: property.location,
+                  beds: property.beds,
+                  baths: property.baths,
+                  area: property.area,
+                  imageUrl: property.image_url,
+                  imageAlt: property.image_alt,
+                  tags: property.tags,
+                  featured: property.featured,
+                }}
+              />
             ))}
           </div>
         </section>
@@ -60,22 +90,29 @@ export default function Home() {
               </button>
             </div>
           </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {newProperties.map((property, index) => {
-              let responsiveClasses = "";
-              if (index === 4) responsiveClasses = "hidden xl:flex";
-              if (index === 5) responsiveClasses = "hidden lg:flex";
-              
-              return (
-                <PropertyCard key={property.id} property={property} className={responsiveClasses} />
-              );
-            })}
+            {newProperties.map((property) => (
+              <PropertyCard
+                key={property.id}
+                property={{
+                  id: property.id,
+                  title: property.title,
+                  priceFormatted: property.price_formatted,
+                  location: property.location,
+                  beds: property.beds,
+                  baths: property.baths,
+                  area: property.area,
+                  imageUrl: property.image_url,
+                  imageAlt: property.image_alt,
+                  tags: property.tags,
+                  featured: property.featured,
+                }}
+              />
+            ))}
           </div>
-          <div className="mt-12 text-center">
-            <button className="px-8 py-3 bg-white border border-nordic-dark/10 hover:border-mosque hover:text-mosque text-nordic-dark font-medium rounded-lg transition-all hover:shadow-md">
-              Load more properties
-            </button>
-          </div>
+
+          <PaginationControls currentPage={currentPage} totalPages={totalPages} />
         </section>
       </main>
     </>
