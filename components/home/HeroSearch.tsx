@@ -9,14 +9,29 @@ export default function HeroSearch() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
+  const [activeType, setActiveType] = useState(searchParams.get("type") || "All");
+
+  const updateUrl = (q: string, t: string) => {
+    const params = new URLSearchParams();
+    if (q.trim()) params.set("q", q.trim());
+    if (t && t !== "All") params.set("type", t);
+    router.push(`/?${params.toString()}`);
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchTerm.trim()) {
-      router.push(`/?q=${encodeURIComponent(searchTerm.trim())}`);
-    } else {
-      router.push(`/`);
-    }
+    updateUrl(searchTerm, activeType);
+  };
+
+  const handleTypeClick = (type: string) => {
+    setActiveType(type);
+    updateUrl(searchTerm, type);
+  };
+
+  const getChipClass = (type: string) => {
+    return activeType === type
+      ? "whitespace-nowrap px-5 py-2 rounded-full bg-nordic-dark text-white text-sm font-medium shadow-lg shadow-nordic-dark/10 transition-transform hover:-translate-y-0.5"
+      : "whitespace-nowrap px-5 py-2 rounded-full bg-white border border-nordic-dark/5 text-nordic-muted hover:text-nordic-dark hover:border-mosque/50 text-sm font-medium transition-all hover:bg-mosque/5";
   };
 
   return (
@@ -51,19 +66,19 @@ export default function HeroSearch() {
           </button>
         </form>
         <div className="flex items-center justify-center gap-3 overflow-x-auto hide-scroll py-2 px-4 -mx-4">
-          <button className="whitespace-nowrap px-5 py-2 rounded-full bg-nordic-dark text-white text-sm font-medium shadow-lg shadow-nordic-dark/10 transition-transform hover:-translate-y-0.5">
+          <button onClick={() => handleTypeClick("All")} className={getChipClass("All")}>
             All
           </button>
-          <button className="whitespace-nowrap px-5 py-2 rounded-full bg-white border border-nordic-dark/5 text-nordic-muted hover:text-nordic-dark hover:border-mosque/50 text-sm font-medium transition-all hover:bg-mosque/5">
+          <button onClick={() => handleTypeClick("House")} className={getChipClass("House")}>
             House
           </button>
-          <button className="whitespace-nowrap px-5 py-2 rounded-full bg-white border border-nordic-dark/5 text-nordic-muted hover:text-nordic-dark hover:border-mosque/50 text-sm font-medium transition-all hover:bg-mosque/5">
+          <button onClick={() => handleTypeClick("Apartment")} className={getChipClass("Apartment")}>
             Apartment
           </button>
-          <button className="whitespace-nowrap px-5 py-2 rounded-full bg-white border border-nordic-dark/5 text-nordic-muted hover:text-nordic-dark hover:border-mosque/50 text-sm font-medium transition-all hover:bg-mosque/5">
+          <button onClick={() => handleTypeClick("Villa")} className={getChipClass("Villa")}>
             Villa
           </button>
-          <button className="whitespace-nowrap px-5 py-2 rounded-full bg-white border border-nordic-dark/5 text-nordic-muted hover:text-nordic-dark hover:border-mosque/50 text-sm font-medium transition-all hover:bg-mosque/5">
+          <button onClick={() => handleTypeClick("Penthouse")} className={getChipClass("Penthouse")}>
             Penthouse
           </button>
           <div className="w-px h-6 bg-nordic-dark/10 mx-2"></div>

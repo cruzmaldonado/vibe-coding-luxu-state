@@ -25,7 +25,8 @@ export interface Property {
 export async function getProperties(
   page: number,
   pageSize: number,
-  searchQuery?: string
+  searchQuery?: string,
+  typeQuery?: string
 ): Promise<{ data: Property[]; totalCount: number }> {
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
@@ -39,6 +40,10 @@ export async function getProperties(
 
   if (searchQuery) {
     query = query.or(`title.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%`);
+  }
+
+  if (typeQuery && typeQuery !== 'All') {
+    query = query.ilike('title', `%${typeQuery}%`);
   }
 
   const { data, error, count } = await query;
@@ -60,7 +65,8 @@ export async function getFeaturedProperties(): Promise<Property[]> {
     .from("properties")
     .select("*")
     .eq("featured", true)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true })
+    .limit(4);
 
   if (error) {
     console.error("Error fetching featured properties:", error);
