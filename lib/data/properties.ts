@@ -24,17 +24,24 @@ export interface Property {
  */
 export async function getProperties(
   page: number,
-  pageSize: number
+  pageSize: number,
+  searchQuery?: string
 ): Promise<{ data: Property[]; totalCount: number }> {
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
-  const { data, error, count } = await supabase
+  let query = supabase
     .from("properties")
     .select("*", { count: "exact" })
     .eq("featured", false)
     .order("created_at", { ascending: true })
     .range(from, to);
+
+  if (searchQuery) {
+    query = query.or(`title.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%`);
+  }
+
+  const { data, error, count } = await query;
 
   if (error) {
     console.error("Error fetching properties:", error);

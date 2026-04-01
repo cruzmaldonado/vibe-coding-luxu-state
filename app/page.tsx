@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import NavBar from "@/components/ui/NavBar";
 import HeroSearch from "@/components/home/HeroSearch";
 import { FeaturedPropertyCard, PropertyCard } from "@/components/home/PropertyCard";
@@ -15,10 +15,12 @@ export default async function Home({
   const resolvedParams = await searchParams;
   const currentPage = Math.max(1, Number(resolvedParams.page) || 1);
 
+  const searchQuery = typeof resolvedParams.q === 'string' ? resolvedParams.q : undefined;
+
   const [featuredProperties, { data: newProperties, totalCount }] =
     await Promise.all([
       getFeaturedProperties(),
-      getProperties(currentPage, PAGE_SIZE),
+      getProperties(currentPage, PAGE_SIZE, searchQuery),
     ]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
@@ -27,7 +29,9 @@ export default async function Home({
     <>
       <NavBar />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        <HeroSearch />
+        <Suspense fallback={<div className="py-12 md:py-16 text-center">Loading search...</div>}>
+          <HeroSearch />
+        </Suspense>
 
         <section className="mb-16">
           <div className="flex items-end justify-between mb-8">
@@ -88,7 +92,9 @@ export default async function Home({
             ))}
           </div>
 
-          <PaginationControls currentPage={currentPage} totalPages={totalPages} />
+          <Suspense fallback={<div className="mt-12 text-center text-sm text-nordic-muted">Loading pages...</div>}>
+            <PaginationControls currentPage={currentPage} totalPages={totalPages} />
+          </Suspense>
         </section>
       </main>
     </>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 interface PaginationControlsProps {
   currentPage: number;
@@ -11,7 +12,15 @@ export default function PaginationControls({
   currentPage,
   totalPages,
 }: PaginationControlsProps) {
+  const searchParams = useSearchParams();
+
   if (totalPages <= 1) return null;
+
+  const createPageURL = (pageNumber: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", pageNumber.toString());
+    return `?${params.toString()}`;
+  };
 
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -20,7 +29,7 @@ export default function PaginationControls({
       {/* Previous */}
       {currentPage > 1 ? (
         <Link
-          href={`?page=${currentPage - 1}`}
+          href={createPageURL(currentPage - 1)}
           className="flex items-center gap-1 px-4 py-2 bg-white border border-nordic-dark/10 hover:border-mosque hover:text-mosque text-nordic-dark text-sm font-medium rounded-lg transition-all hover:shadow-md"
         >
           <span className="material-icons text-sm">chevron_left</span>
@@ -38,7 +47,7 @@ export default function PaginationControls({
         {pages.map((page) => (
           <Link
             key={page}
-            href={`?page=${page}`}
+            href={createPageURL(page)}
             className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm font-medium transition-all ${
               page === currentPage
                 ? "bg-nordic-dark text-white shadow-sm"
@@ -53,7 +62,7 @@ export default function PaginationControls({
       {/* Next */}
       {currentPage < totalPages ? (
         <Link
-          href={`?page=${currentPage + 1}`}
+          href={createPageURL(currentPage + 1)}
           className="flex items-center gap-1 px-4 py-2 bg-white border border-nordic-dark/10 hover:border-mosque hover:text-mosque text-nordic-dark text-sm font-medium rounded-lg transition-all hover:shadow-md"
         >
           Siguiente
