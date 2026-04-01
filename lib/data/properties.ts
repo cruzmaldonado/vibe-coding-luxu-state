@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase/server";
 export interface Property {
   id: string;
   title: string;
+  slug: string;
   price_formatted: string;
   location: string;
   beds: number;
@@ -10,6 +11,9 @@ export interface Property {
   area: number;
   image_url: string;
   image_alt: string;
+  images: string[];
+  lat: number;
+  lng: number;
   tags: string[];
   featured: boolean;
   is_new: boolean;
@@ -59,4 +63,22 @@ export async function getFeaturedProperties(): Promise<Property[]> {
   }
 
   return data ?? [];
+}
+
+/**
+ * Fetches a single property by its slug.
+ */
+export async function getPropertyBySlug(slug: string): Promise<Property | null> {
+  const { data, error } = await supabase
+    .from("properties")
+    .select("*")
+    .eq("slug", slug)
+    .single();
+
+  if (error) {
+    console.error("Error fetching property by slug:", error);
+    return null;
+  }
+  
+  return (data as Property) || null;
 }

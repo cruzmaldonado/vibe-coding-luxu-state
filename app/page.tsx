@@ -50,20 +50,7 @@ export default async function Home({
             {featuredProperties.map((property) => (
               <FeaturedPropertyCard
                 key={property.id}
-                property={{
-                  id: property.id,
-                  title: property.title,
-                  priceFormatted: property.price_formatted,
-                  location: property.location,
-                  beds: property.beds,
-                  baths: property.baths,
-                  area: property.area,
-                  imageUrl: property.image_url,
-                  imageAlt: property.image_alt,
-                  tags: property.tags,
-                  featured: property.featured,
-                  isNew: property.is_new,
-                }}
+                property={property}
               />
             ))}
           </div>
@@ -96,20 +83,7 @@ export default async function Home({
             {newProperties.map((property) => (
               <PropertyCard
                 key={property.id}
-                property={{
-                  id: property.id,
-                  title: property.title,
-                  priceFormatted: property.price_formatted,
-                  location: property.location,
-                  beds: property.beds,
-                  baths: property.baths,
-                  area: property.area,
-                  imageUrl: property.image_url,
-                  imageAlt: property.image_alt,
-                  tags: property.tags,
-                  featured: property.featured,
-                  isNew: property.is_new,
-                }}
+                property={property}
               />
             ))}
           </div>
