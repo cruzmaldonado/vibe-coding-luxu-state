@@ -62,6 +62,7 @@ export default async function Home({
                   imageAlt: property.image_alt,
                   tags: property.tags,
                   featured: property.featured,
+                  isNew: property.is_new,
                 }}
               />
             ))}
@@ -107,6 +108,7 @@ export default async function Home({
                   imageAlt: property.image_alt,
                   tags: property.tags,
                   featured: property.featured,
+                  isNew: property.is_new,
                 }}
               />
             ))}

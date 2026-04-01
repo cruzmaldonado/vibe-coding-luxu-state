@@ -10,6 +10,7 @@ export interface Property {
   imageAlt: string;
   tags: string[];
   featured?: boolean;
+  isNew?: boolean;
 }
 
 export const mockProperties: Property[] = [

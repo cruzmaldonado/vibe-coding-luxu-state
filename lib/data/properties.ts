@@ -12,6 +12,7 @@ export interface Property {
   image_alt: string;
   tags: string[];
   featured: boolean;
+  is_new: boolean;
   created_at: string;
 }
 
