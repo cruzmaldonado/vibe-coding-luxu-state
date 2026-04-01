@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: `${property.title} | LuxeEstate`,
     description: `View details for ${property.title} located in ${property.location}. Price: ${property.price_formatted}.`,
     openGraph: {
-      images: [property.image_url],
+      images: [property.images?.[0] ?? ''],
     }
   };
 }
@@ -29,10 +29,8 @@ export default async function PropertyPage({ params }: { params: Promise<{ slug:
     notFound();
   }
 
-  // Handle images, ensuring at least the cover image is displayed
-  const allImages = property.images && property.images.length > 0
-    ? property.images
-    : [property.image_url];
+  // Use the images array directly — all properties are guaranteed to have at least 1
+  const allImages = property.images ?? [];
 
   const coverImage = allImages[0];
 
@@ -45,7 +43,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ slug:
           <div className="lg:col-span-8 space-y-4">
             <div className="relative aspect-[16/10] overflow-hidden rounded-xl shadow-sm group">
               <img
-                alt={property.image_alt || property.title}
+                alt={property.title}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 src={coverImage}
               />

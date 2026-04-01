@@ -9,8 +9,6 @@ export interface Property {
   beds: number;
   baths: number;
   area: number;
-  image_url: string;
-  image_alt: string;
   images: string[];
   lat: number;
   lng: number;
