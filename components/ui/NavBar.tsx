@@ -1,13 +1,36 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import LanguageSelector from "./LanguageSelector";
+import { createClient } from "@/lib/supabase/client";
 
 export default function NavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const { t } = useLanguage();
+  const supabase = createClient();
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.user_metadata?.avatar_url) {
+        setUserAvatar(session.user.user_metadata.avatar_url);
+      }
+    };
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user?.user_metadata?.avatar_url) {
+        setUserAvatar(session.user.user_metadata.avatar_url);
+      } else {
+        setUserAvatar(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <nav className="sticky top-0 z-50 bg-background-light/95 backdrop-blur-md border-b border-nordic-dark/10">
@@ -59,15 +82,30 @@ export default function NavBar() {
               <span className="material-icons">notifications_none</span>
               <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-background-light"></span>
             </button>
-            <button className="flex items-center gap-2 pl-2 border-l border-nordic-dark/10 ml-2">
-              <div className="w-9 h-9 rounded-full bg-gray-200 overflow-hidden ring-2 ring-transparent hover:ring-mosque transition-all">
-                <img
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAWhQZ663Bd08kmzjbOPmUk4UIxYooNONShMEFXLR-DtmVi6Oz-TiaY77SPwFk7g0OobkeZEOMvt6v29mSOD0Xm2g95WbBG3ZjWXmiABOUwGU0LOySRfVDo-JTXQ0-gtwjWxbmue0qDm91m-zEOEZwAW6iRFB1qC1bAU-wkjxm67Sbztq8w7srHkFT9bVEC86qG-FzhOBTomhAurNRmx9l8Yfqabk328NfdKuVLckgCdaPsNFE3yN65MeoRi05GA_gXIMwG4YDIeA"
-                />
-              </div>
-            </button>
+            {userAvatar ? (
+              <button 
+                className="flex items-center gap-2 pl-2 border-l border-nordic-dark/10 ml-2"
+                title="Sign out"
+                onClick={async () => await supabase.auth.signOut()}
+              >
+                <div className="w-9 h-9 rounded-full bg-gray-200 overflow-hidden ring-2 ring-transparent hover:ring-mosque transition-all">
+                  <img
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                    src={userAvatar}
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              </button>
+            ) : (
+              <Link 
+                href="/login"
+                className="flex items-center gap-2 pl-4 border-l border-nordic-dark/10 ml-2 text-sm font-medium text-nordic-dark hover:text-mosque transition-colors"
+                title="Log In"
+              >
+                Log In
+              </Link>
+            )}
           </div>
         </div>
       </div>

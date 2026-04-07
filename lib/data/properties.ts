@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export interface Property {
   id: string;
@@ -31,6 +31,8 @@ export async function getProperties(
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
+  const supabase = await createClient();
+
   let query = supabase
     .from("properties")
     .select("*", { count: "exact" })
@@ -61,6 +63,7 @@ export async function getProperties(
  * Used for the "Featured Collections" section.
  */
 export async function getFeaturedProperties(): Promise<Property[]> {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("properties")
     .select("*")
@@ -80,6 +83,7 @@ export async function getFeaturedProperties(): Promise<Property[]> {
  * Fetches a single property by its slug.
  */
 export async function getPropertyBySlug(slug: string): Promise<Property | null> {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("properties")
     .select("*")
