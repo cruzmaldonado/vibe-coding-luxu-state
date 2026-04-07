@@ -84,11 +84,11 @@ export default function NavBar() {
             </button>
             {userAvatar ? (
               <button 
-                className="flex items-center gap-2 pl-2 border-l border-nordic-dark/10 ml-2"
-                title="Sign out"
+                className="flex items-center gap-2 pl-2 border-l border-nordic-dark/10 ml-2 group"
+                title={t.nav.logout}
                 onClick={async () => await supabase.auth.signOut()}
               >
-                <div className="w-9 h-9 rounded-full bg-gray-200 overflow-hidden ring-2 ring-transparent hover:ring-mosque transition-all">
+                <div className="w-9 h-9 rounded-full bg-gray-200 overflow-hidden ring-2 ring-transparent group-hover:ring-mosque transition-all">
                   <img
                     alt="Profile"
                     className="w-full h-full object-cover"
@@ -96,14 +96,15 @@ export default function NavBar() {
                     referrerPolicy="no-referrer"
                   />
                 </div>
+                <span className="material-symbols-outlined text-nordic-dark group-hover:text-mosque ml-1">logout</span>
               </button>
             ) : (
               <Link 
                 href="/login"
                 className="flex items-center gap-2 pl-4 border-l border-nordic-dark/10 ml-2 text-sm font-medium text-nordic-dark hover:text-mosque transition-colors"
-                title="Log In"
+                title={t.nav.login}
               >
-                Log In
+                {t.nav.login}
               </Link>
             )}
           </div>

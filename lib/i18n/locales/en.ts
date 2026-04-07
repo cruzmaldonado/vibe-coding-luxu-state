@@ -6,6 +6,8 @@ const en: Translations = {
     rent: 'Rent',
     sell: 'Sell',
     savedHomes: 'Saved Homes',
+    login: 'Log In',
+    logout: 'Log Out',
   },
   hero: {
     heading: 'Find your',

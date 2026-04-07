@@ -16,12 +16,13 @@ export const LOCALE_LABELS: Record<Locale, { label: string; flag: string; native
  * Every locale file must implement ALL keys.
  */
 export interface Translations {
-  // NavBar
   nav: {
     buy: string;
     rent: string;
     sell: string;
     savedHomes: string;
+    login: string;
+    logout: string;
   };
   // HeroSearch
   hero: {
