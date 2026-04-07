@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
 interface PaginationControlsProps {
   currentPage: number;
@@ -13,6 +14,7 @@ export default function PaginationControls({
   totalPages,
 }: PaginationControlsProps) {
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
 
   if (totalPages <= 1) return null;
 
@@ -33,12 +35,12 @@ export default function PaginationControls({
           className="flex items-center gap-1 px-4 py-2 bg-white border border-nordic-dark/10 hover:border-mosque hover:text-mosque text-nordic-dark text-sm font-medium rounded-lg transition-all hover:shadow-md"
         >
           <span className="material-icons text-sm">chevron_left</span>
-          Anterior
+          {t.pagination.previous}
         </Link>
       ) : (
         <span className="flex items-center gap-1 px-4 py-2 bg-white border border-nordic-dark/10 text-nordic-dark/30 text-sm font-medium rounded-lg cursor-not-allowed select-none">
           <span className="material-icons text-sm">chevron_left</span>
-          Anterior
+          {t.pagination.previous}
         </span>
       )}
 
@@ -65,12 +67,12 @@ export default function PaginationControls({
           href={createPageURL(currentPage + 1)}
           className="flex items-center gap-1 px-4 py-2 bg-white border border-nordic-dark/10 hover:border-mosque hover:text-mosque text-nordic-dark text-sm font-medium rounded-lg transition-all hover:shadow-md"
         >
-          Siguiente
+          {t.pagination.next}
           <span className="material-icons text-sm">chevron_right</span>
         </Link>
       ) : (
         <span className="flex items-center gap-1 px-4 py-2 bg-white border border-nordic-dark/10 text-nordic-dark/30 text-sm font-medium rounded-lg cursor-not-allowed select-none">
-          Siguiente
+          {t.pagination.next}
           <span className="material-icons text-sm">chevron_right</span>
         </span>
       )}

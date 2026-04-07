@@ -3,8 +3,11 @@
 import React from "react";
 import { Property } from "@/lib/data/properties";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
 export function FeaturedPropertyCard({ property }: { property: Property }) {
+  const { t } = useLanguage();
+
   return (
     <Link href={`/properties/${property.slug}`} className="block group relative rounded-xl overflow-hidden shadow-soft bg-white cursor-pointer hover:shadow-lg transition-all duration-300">
       <div className="aspect-[4/3] w-full overflow-hidden relative">
@@ -40,10 +43,10 @@ export function FeaturedPropertyCard({ property }: { property: Property }) {
         </div>
         <div className="flex items-center gap-6 mt-6 pt-6 border-t border-nordic-dark/10">
           <div className="flex items-center gap-2 text-nordic-muted text-sm">
-            <span className="material-icons text-lg">king_bed</span> {property.beds} Beds
+            <span className="material-icons text-lg">king_bed</span> {property.beds} {t.propertyCard.beds}
           </div>
           <div className="flex items-center gap-2 text-nordic-muted text-sm">
-            <span className="material-icons text-lg">bathtub</span> {property.baths} Baths
+            <span className="material-icons text-lg">bathtub</span> {property.baths} {t.propertyCard.baths}
           </div>
           <div className="flex items-center gap-2 text-nordic-muted text-sm">
             <span className="material-icons text-lg">square_foot</span> {property.area} m²
@@ -55,6 +58,7 @@ export function FeaturedPropertyCard({ property }: { property: Property }) {
 }
 
 export function PropertyCard({ property, className = "" }: { property: Property, className?: string }) {
+  const { t } = useLanguage();
   const isRent = property.tags && property.tags.includes("FOR RENT");
 
   return (
@@ -84,7 +88,7 @@ export function PropertyCard({ property, className = "" }: { property: Property,
           <h3 className="font-bold text-lg text-nordic-dark">
             {property.price_formatted.replace("/mo", "")}
             {property.price_formatted.includes("/mo") && (
-              <span className="text-sm font-normal text-nordic-muted">/mo</span>
+              <span className="text-sm font-normal text-nordic-muted">{t.propertyCard.perMonth}</span>
             )}
           </h3>
         </div>

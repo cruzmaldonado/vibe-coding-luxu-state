@@ -2,15 +2,26 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { SUPPORTED_LOCALES, LOCALE_LABELS } from "@/lib/i18n";
+import { SUPPORTED_LOCALES } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
+
+const LOCALE_ABBR: Record<Locale, string> = {
+  en: 'EN',
+  es: 'ES',
+  fr: 'FR',
+};
+
+const FLAG_URLS: Record<Locale, string> = {
+  en: "https://flagcdn.com/w20/us.png",
+  es: "https://flagcdn.com/w20/es.png",
+  fr: "https://flagcdn.com/w20/fr.png",
+};
 
 export default function LanguageSelector() {
   const { locale, setLocale } = useLanguage();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
@@ -19,39 +30,39 @@ export default function LanguageSelector() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const current = LOCALE_LABELS[locale];
-
   return (
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm font-medium text-nordic-dark hover:bg-black/5 transition-colors"
+        className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm font-medium text-nordic-dark hover:bg-black/5 transition-colors"
         aria-label="Select language"
         id="language-selector-btn"
       >
-        <span className="text-base leading-none">{current.flag}</span>
-        <span className="hidden sm:inline">{current.nativeName}</span>
-        <span className="material-icons text-sm text-nordic-muted">expand_more</span>
+        <img src={FLAG_URLS[locale]} alt={LOCALE_ABBR[locale]} className="w-[18px] h-auto rounded-sm drop-shadow-sm" />
+        <span className="text-[13px] font-semibold tracking-wide ml-0.5">{LOCALE_ABBR[locale]}</span>
+        <span className="material-icons text-sm text-nordic-muted -ml-1">{open ? 'expand_less' : 'expand_more'}</span>
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-44 bg-white rounded-xl shadow-lg border border-nordic-dark/10 overflow-hidden z-50 animate-[fadeIn_150ms_ease-out]">
+        <div className="absolute right-0 top-full mt-2 min-w-[105px] bg-[#35363a] p-1.5 rounded-xl shadow-xl shadow-black/20 border border-white/10 z-50 animate-[fadeIn_150ms_ease-out]">
           {SUPPORTED_LOCALES.map((code) => {
-            const info = LOCALE_LABELS[code as Locale];
+            const abbr = LOCALE_ABBR[code as Locale];
             const isActive = code === locale;
             return (
               <button
                 key={code}
                 onClick={() => { setLocale(code); setOpen(false); }}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
+                className={`w-full flex items-center gap-2 px-2.5 py-1.5 text-sm rounded-lg transition-colors ${
                   isActive
-                    ? "bg-mosque/10 text-mosque font-medium"
-                    : "text-nordic-dark hover:bg-black/5"
+                    ? "bg-[#4279d4] text-white font-medium shadow-sm"
+                    : "text-gray-300 hover:bg-white/10"
                 }`}
               >
-                <span className="text-lg leading-none">{info.flag}</span>
-                <span>{info.nativeName}</span>
-                {isActive && <span className="material-icons text-mosque text-sm ml-auto">check</span>}
+                <span className={`material-icons text-[16px] leading-none flex-shrink-0 -ml-1 ${isActive ? 'opacity-100 text-white' : 'opacity-0'}`}>
+                  check
+                </span>
+                <img src={FLAG_URLS[code as Locale]} alt={abbr} className="w-[18px] h-auto rounded-[2px] shadow-sm ml-0.5" />
+                <span className="font-semibold tracking-wide ml-0.5">{abbr}</span>
               </button>
             );
           })}
