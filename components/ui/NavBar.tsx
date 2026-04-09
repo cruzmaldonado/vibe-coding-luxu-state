@@ -83,7 +83,7 @@ export default function NavBar() {
               <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-background-light"></span>
             </button>
             {userAvatar ? (
-              <button 
+              <button
                 className="flex items-center gap-2 pl-2 border-l border-nordic-dark/10 ml-2 group"
                 title={t.nav.logout}
                 onClick={async () => await supabase.auth.signOut()}
@@ -99,7 +99,7 @@ export default function NavBar() {
                 <span className="material-symbols-outlined text-nordic-dark group-hover:text-mosque ml-1">logout</span>
               </button>
             ) : (
-              <Link 
+              <Link
                 href="/login"
                 className="flex items-center gap-2 pl-4 border-l border-nordic-dark/10 ml-2 text-sm font-medium text-nordic-dark hover:text-mosque transition-colors"
                 title={t.nav.login}
