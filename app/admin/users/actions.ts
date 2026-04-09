@@ -18,3 +18,19 @@ export async function updateUserRole(userId: string, newRole: string) {
   revalidatePath('/admin/users')
   return { success: true }
 }
+
+export async function deleteUser(userId: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('user_roles')
+    .delete()
+    .eq('user_id', userId)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath('/admin/users')
+  return { success: true }
+}

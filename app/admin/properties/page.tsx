@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
+import { AddPropertyModal, DeletePropertyButton } from './property-modals'
 
 function StatusBadge({ featured, isNew }: { featured: boolean; isNew: boolean }) {
   if (featured) {
@@ -19,8 +20,8 @@ function StatusBadge({ featured, isNew }: { featured: boolean; isNew: boolean })
     )
   }
   return (
-    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
-      <span className="w-1.5 h-1.5 rounded-full bg-gray-500 mr-1.5"></span>
+    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#D9ECC8] text-[#006655] border border-[#006655]/10">
+      <span className="w-1.5 h-1.5 rounded-full bg-[#006655] mr-1.5"></span>
       Active
     </span>
   )
@@ -62,10 +63,7 @@ export default async function AdminPropertiesPage() {
             <span className="material-icons text-base">filter_list</span>
             Filter
           </button>
-          <button className="bg-[#006655] hover:bg-[#004d40] text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow-md shadow-[#006655]/20 transition-all transform hover:-translate-y-0.5 inline-flex items-center gap-2">
-            <span className="material-icons text-base">add</span>
-            Add New Property
-          </button>
+          <AddPropertyModal />
         </div>
       </div>
 
@@ -148,7 +146,7 @@ export default async function AdminPropertiesPage() {
                     {property.baths} Baths
                   </span>
                   <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                  <span>{property.area}</span>
+                  <span>{property.area?.toLocaleString()} sqft</span>
                 </div>
               </div>
             </div>
@@ -172,19 +170,18 @@ export default async function AdminPropertiesPage() {
               >
                 <span className="material-icons text-xl">edit</span>
               </button>
-              <button
-                className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all"
-                title="Delete Property"
-              >
-                <span className="material-icons text-xl">delete_outline</span>
-              </button>
+              <DeletePropertyButton propertyId={property.id} propertyName={property.title} />
             </div>
           </div>
         ))}
 
         {properties?.length === 0 && (
-          <div className="px-6 py-12 text-center text-gray-500">
-            No properties found.
+          <div className="px-6 py-16 text-center">
+            <div className="h-16 w-16 rounded-full bg-[#006655]/10 flex items-center justify-center text-[#006655] mx-auto mb-4">
+              <span className="material-icons text-3xl">apartment</span>
+            </div>
+            <p className="text-[#19322F] font-medium">No properties yet</p>
+            <p className="text-sm text-gray-400 mt-1">Click "Add New Property" to get started.</p>
           </div>
         )}
 
