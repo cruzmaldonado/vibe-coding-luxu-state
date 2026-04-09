@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
 import { RoleForm } from './role-form'
 import { AddUserModal } from './add-user-modal'
+
+const PAGE_SIZE = 10
 
 function getRoleBadge(role: string) {
   if (role === 'admin') {
@@ -17,30 +20,88 @@ function getRoleBadge(role: string) {
   )
 }
 
-function getStatusBadge(role: string) {
-  if (role === 'admin') {
-    return (
-      <div className="flex items-center text-xs text-[#19322F]/60">
-        <span className="material-icons text-[14px] mr-1 text-[#006655]">check_circle</span>
-        Active
-      </div>
-    )
+function Pagination({ currentPage, totalPages }: { currentPage: number; totalPages: number }) {
+  if (totalPages <= 1) return null
+
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
+  const showEllipsis = totalPages > 7
+
+  let visiblePages = pages
+  if (showEllipsis) {
+    if (currentPage <= 4) {
+      visiblePages = [...pages.slice(0, 5), -1, totalPages]
+    } else if (currentPage >= totalPages - 3) {
+      visiblePages = [1, -1, ...pages.slice(totalPages - 5)]
+    } else {
+      visiblePages = [1, -1, currentPage - 1, currentPage, currentPage + 1, -2, totalPages]
+    }
   }
+
   return (
-    <div className="flex items-center text-xs text-[#19322F]/60">
-      <span className="material-icons text-[14px] mr-1 text-[#006655]">check_circle</span>
-      Active
-    </div>
+    <nav className="flex items-center gap-1" aria-label="Pagination">
+      <Link
+        href={`/admin/users?page=${currentPage - 1}`}
+        aria-disabled={currentPage === 1}
+        className={`flex items-center justify-center h-9 w-9 rounded-lg text-sm transition-all ${
+          currentPage === 1
+            ? 'pointer-events-none text-[#19322F]/20'
+            : 'text-[#19322F]/60 hover:bg-[#006655]/10 hover:text-[#006655]'
+        }`}
+      >
+        <span className="material-icons text-xl">chevron_left</span>
+      </Link>
+
+      {visiblePages.map((page, idx) =>
+        page < 0 ? (
+          <span key={`ellipsis-${idx}`} className="flex items-center justify-center h-9 w-9 text-[#19322F]/30 text-sm">
+            …
+          </span>
+        ) : (
+          <Link
+            key={page}
+            href={`/admin/users?page=${page}`}
+            className={`flex items-center justify-center h-9 w-9 rounded-lg text-sm font-medium transition-all ${
+              page === currentPage
+                ? 'bg-[#006655] text-white shadow-md shadow-[#006655]/20'
+                : 'text-[#19322F]/60 hover:bg-[#006655]/10 hover:text-[#006655]'
+            }`}
+          >
+            {page}
+          </Link>
+        )
+      )}
+
+      <Link
+        href={`/admin/users?page=${currentPage + 1}`}
+        aria-disabled={currentPage === totalPages}
+        className={`flex items-center justify-center h-9 w-9 rounded-lg text-sm transition-all ${
+          currentPage === totalPages
+            ? 'pointer-events-none text-[#19322F]/20'
+            : 'text-[#19322F]/60 hover:bg-[#006655]/10 hover:text-[#006655]'
+        }`}
+      >
+        <span className="material-icons text-xl">chevron_right</span>
+      </Link>
+    </nav>
   )
 }
 
-export default async function AdminUsersPage() {
+export default async function AdminUsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>
+}) {
   const supabase = await createClient()
+  const params = await searchParams
+  const currentPage = Math.max(1, parseInt(params.page || '1', 10))
+  const from = (currentPage - 1) * PAGE_SIZE
+  const to = from + PAGE_SIZE - 1
 
-  const { data: users, error } = await supabase
+  const { data: users, error, count } = await supabase
     .from('user_roles')
-    .select('*')
+    .select('*', { count: 'exact' })
     .order('created_at', { ascending: false })
+    .range(from, to)
 
   const { data: { user: currentUser } } = await supabase.auth.getUser()
 
@@ -54,6 +115,11 @@ export default async function AdminUsersPage() {
       </div>
     )
   }
+
+  const totalCount = count || 0
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE)
+  const rangeStart = from + 1
+  const rangeEnd = Math.min(from + (users?.length || 0), totalCount)
 
   return (
     <>
@@ -89,7 +155,7 @@ export default async function AdminUsersPage() {
       </header>
 
       {/* User List */}
-      <main className="flex-grow px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full pb-12 space-y-4">
+      <main className="flex-grow px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full pb-6 space-y-4">
         {/* Column Headers */}
         <div className="hidden md:grid grid-cols-12 gap-4 px-6 text-xs font-semibold uppercase tracking-wider text-[#19322F]/50 mb-2">
           <div className="col-span-4">User Details</div>
@@ -101,14 +167,14 @@ export default async function AdminUsersPage() {
         {/* User Cards */}
         {users?.map((u, index) => {
           const isCurrentUser = currentUser?.id === u.user_id
-          const isActive = index === 0 // Highlight first user as "active" for visual effect
-          
+          const isActive = index === 0
+
           return (
             <div
               key={u.id}
               className={`group relative rounded-xl p-5 shadow-sm border flex flex-col md:grid md:grid-cols-12 gap-4 items-center transition-all duration-200
-                ${isCurrentUser 
-                  ? 'bg-[#D9ECC8] border-transparent hover:shadow-md' 
+                ${isCurrentUser
+                  ? 'bg-[#D9ECC8] border-transparent hover:shadow-md'
                   : 'bg-white border-gray-100 hover:bg-[#D9ECC8] hover:border-transparent hover:shadow-md'
                 }`}
             >
@@ -141,10 +207,13 @@ export default async function AdminUsersPage() {
               {/* Role & Status */}
               <div className="col-span-12 md:col-span-3 w-full flex items-center justify-between md:justify-start gap-4">
                 {getRoleBadge(u.role)}
-                {getStatusBadge(u.role)}
+                <div className="flex items-center text-xs text-[#19322F]/60">
+                  <span className="material-icons text-[14px] mr-1 text-[#006655]">check_circle</span>
+                  Active
+                </div>
               </div>
 
-              {/* Info / Performance */}
+              {/* Info */}
               <div className="col-span-12 md:col-span-3 w-full grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-[10px] uppercase tracking-wider text-[#19322F]/50">Joined</div>
@@ -175,32 +244,25 @@ export default async function AdminUsersPage() {
         )}
       </main>
 
-      {/* Footer / Pagination */}
-      <footer className="mt-auto border-t border-[#19322F]/5 bg-[#EEF6F6] py-6 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-[#19322F]/60">
-                Showing <span className="font-medium text-[#19322F]">1</span> to{' '}
-                <span className="font-medium text-[#19322F]">{users?.length || 0}</span> of{' '}
-                <span className="font-medium text-[#19322F]">{users?.length || 0}</span> users
-              </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex -space-x-px" aria-label="Pagination">
-                <a href="#" className="relative inline-flex items-center px-2 py-2 rounded-l-md text-sm font-medium text-[#19322F]/50 hover:text-[#006655] transition-colors">
-                  <span className="sr-only">Previous</span>
-                  <span className="material-icons text-xl">chevron_left</span>
-                </a>
-                <a href="#" aria-current="page" className="z-10 bg-[#006655] text-white relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md mx-1 shadow-sm">1</a>
-                <a href="#" className="bg-transparent text-[#19322F]/70 hover:bg-white hover:text-[#006655] relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md mx-1 transition-colors">2</a>
-                <a href="#" className="relative inline-flex items-center px-2 py-2 rounded-r-md text-sm font-medium text-[#19322F]/50 hover:text-[#006655] transition-colors">
-                  <span className="sr-only">Next</span>
-                  <span className="material-icons text-xl">chevron_right</span>
-                </a>
-              </nav>
-            </div>
-          </div>
+      {/* Pagination Footer */}
+      <footer className="border-t border-[#19322F]/5 bg-[#EEF6F6] py-5 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-[#19322F]/60">
+            {totalCount > 0 ? (
+              <>
+                Showing{' '}
+                <span className="font-semibold text-[#19322F]">{rangeStart}</span>
+                {' – '}
+                <span className="font-semibold text-[#19322F]">{rangeEnd}</span>
+                {' of '}
+                <span className="font-semibold text-[#19322F]">{totalCount}</span>
+                {' users'}
+              </>
+            ) : (
+              'No users found'
+            )}
+          </p>
+          <Pagination currentPage={currentPage} totalPages={totalPages} />
         </div>
       </footer>
     </>

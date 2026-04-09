@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
+import Link from 'next/link'
 import { AddPropertyModal, DeletePropertyButton } from './property-modals'
+
+const PAGE_SIZE = 8
 
 function StatusBadge({ featured, isNew }: { featured: boolean; isNew: boolean }) {
   if (featured) {
@@ -27,13 +30,88 @@ function StatusBadge({ featured, isNew }: { featured: boolean; isNew: boolean })
   )
 }
 
-export default async function AdminPropertiesPage() {
-  const supabase = await createClient()
+function Pagination({ currentPage, totalPages }: { currentPage: number; totalPages: number }) {
+  if (totalPages <= 1) return null
 
-  const { data: properties, error } = await supabase
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
+  const showEllipsis = totalPages > 7
+
+  let visiblePages = pages
+  if (showEllipsis) {
+    if (currentPage <= 4) {
+      visiblePages = [...pages.slice(0, 5), -1, totalPages]
+    } else if (currentPage >= totalPages - 3) {
+      visiblePages = [1, -1, ...pages.slice(totalPages - 5)]
+    } else {
+      visiblePages = [1, -1, currentPage - 1, currentPage, currentPage + 1, -2, totalPages]
+    }
+  }
+
+  return (
+    <nav className="flex items-center gap-1" aria-label="Pagination">
+      <Link
+        href={`/admin/properties?page=${currentPage - 1}`}
+        aria-disabled={currentPage === 1}
+        className={`flex items-center justify-center h-9 w-9 rounded-lg text-sm transition-all ${
+          currentPage === 1
+            ? 'pointer-events-none text-[#19322F]/20'
+            : 'text-[#19322F]/60 hover:bg-[#006655]/10 hover:text-[#006655]'
+        }`}
+      >
+        <span className="material-icons text-xl">chevron_left</span>
+      </Link>
+
+      {visiblePages.map((page, idx) =>
+        page < 0 ? (
+          <span key={`ellipsis-${idx}`} className="flex items-center justify-center h-9 w-9 text-[#19322F]/30 text-sm">
+            …
+          </span>
+        ) : (
+          <Link
+            key={page}
+            href={`/admin/properties?page=${page}`}
+            className={`flex items-center justify-center h-9 w-9 rounded-lg text-sm font-medium transition-all ${
+              page === currentPage
+                ? 'bg-[#006655] text-white shadow-md shadow-[#006655]/20'
+                : 'text-[#19322F]/60 hover:bg-[#006655]/10 hover:text-[#006655]'
+            }`}
+          >
+            {page}
+          </Link>
+        )
+      )}
+
+      <Link
+        href={`/admin/properties?page=${currentPage + 1}`}
+        aria-disabled={currentPage === totalPages}
+        className={`flex items-center justify-center h-9 w-9 rounded-lg text-sm transition-all ${
+          currentPage === totalPages
+            ? 'pointer-events-none text-[#19322F]/20'
+            : 'text-[#19322F]/60 hover:bg-[#006655]/10 hover:text-[#006655]'
+        }`}
+      >
+        <span className="material-icons text-xl">chevron_right</span>
+      </Link>
+    </nav>
+  )
+}
+
+export default async function AdminPropertiesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>
+}) {
+  const supabase = await createClient()
+  const params = await searchParams
+  const currentPage = Math.max(1, parseInt(params.page || '1', 10))
+  const from = (currentPage - 1) * PAGE_SIZE
+  const to = from + PAGE_SIZE - 1
+
+  const { data: properties, error, count } = await supabase
     .from('properties')
-    .select('*')
+    .select('*', { count: 'exact' })
     .order('created_at', { ascending: false })
+    .range(from, to)
 
   if (error) {
     return (
@@ -46,9 +124,12 @@ export default async function AdminPropertiesPage() {
     )
   }
 
-  const totalCount = properties?.length || 0
+  const totalCount = count || 0
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE)
   const featuredCount = properties?.filter(p => p.featured).length || 0
   const newCount = properties?.filter(p => p.is_new).length || 0
+  const rangeStart = from + 1
+  const rangeEnd = Math.min(from + (properties?.length || 0), totalCount)
 
   return (
     <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -181,21 +262,28 @@ export default async function AdminPropertiesPage() {
               <span className="material-icons text-3xl">apartment</span>
             </div>
             <p className="text-[#19322F] font-medium">No properties yet</p>
-            <p className="text-sm text-gray-400 mt-1">Click "Add New Property" to get started.</p>
+            <p className="text-sm text-gray-400 mt-1">Click &quot;Add New Property&quot; to get started.</p>
           </div>
         )}
 
-        {/* Pagination */}
-        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
-          <div className="text-sm text-gray-500">
-            Showing <span className="font-medium text-[#19322F]">1</span> to{' '}
-            <span className="font-medium text-[#19322F]">{Math.min(properties?.length || 0, 10)}</span> of{' '}
-            <span className="font-medium text-[#19322F]">{properties?.length || 0}</span> results
-          </div>
-          <div className="flex gap-2">
-            <button className="px-3 py-1 text-sm border border-gray-200 rounded-md text-gray-600 hover:bg-white disabled:opacity-50" disabled>Previous</button>
-            <button className="px-3 py-1 text-sm border border-gray-200 rounded-md text-gray-600 hover:bg-white">Next</button>
-          </div>
+        {/* Pagination Footer */}
+        <div className="px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50">
+          <p className="text-sm text-gray-500">
+            {totalCount > 0 ? (
+              <>
+                Showing{' '}
+                <span className="font-semibold text-[#19322F]">{rangeStart}</span>
+                {' – '}
+                <span className="font-semibold text-[#19322F]">{rangeEnd}</span>
+                {' of '}
+                <span className="font-semibold text-[#19322F]">{totalCount}</span>
+                {' properties'}
+              </>
+            ) : (
+              'No properties found'
+            )}
+          </p>
+          <Pagination currentPage={currentPage} totalPages={totalPages} />
         </div>
       </div>
     </main>
