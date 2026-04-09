@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
-import { AddPropertyModal, DeletePropertyButton } from './property-modals'
+import { DeletePropertyButton } from './property-modals'
 
 const PAGE_SIZE = 8
 
@@ -144,7 +144,13 @@ export default async function AdminPropertiesPage({
             <span className="material-icons text-base">filter_list</span>
             Filter
           </button>
-          <AddPropertyModal />
+          <Link
+            href="/admin/properties/create"
+            className="bg-[#006655] hover:bg-[#004d40] text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow-md shadow-[#006655]/20 transition-all transform hover:-translate-y-0.5 inline-flex items-center gap-2"
+          >
+            <span className="material-icons text-base">add</span>
+            Add New Property
+          </Link>
         </div>
       </div>
 
@@ -245,12 +251,13 @@ export default async function AdminPropertiesPage({
 
             {/* Actions */}
             <div className="col-span-12 md:col-span-2 flex items-center justify-end gap-2">
-              <button
+              <Link
+                href={`/admin/properties/${property.id}/edit`}
                 className="p-2 rounded-lg text-gray-400 hover:text-[#006655] hover:bg-[#D9ECC8]/30 transition-all"
                 title="Edit Property"
               >
                 <span className="material-icons text-xl">edit</span>
-              </button>
+              </Link>
               <DeletePropertyButton propertyId={property.id} propertyName={property.title} />
             </div>
           </div>

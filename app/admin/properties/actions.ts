@@ -22,12 +22,20 @@ export async function deleteProperty(propertyId: string) {
 export async function addProperty(formData: {
   title: string
   location: string
+  price: number
   price_formatted: string
   beds: number
   baths: number
   area: number
   featured: boolean
   is_new: boolean
+  description?: string
+  status?: string
+  type?: string
+  year_built?: number
+  parking?: number
+  images?: string[]
+  tags?: string[]
 }) {
   const supabase = await createClient()
 
@@ -41,15 +49,22 @@ export async function addProperty(formData: {
   const { error } = await supabase.from('properties').insert({
     title: formData.title,
     location: formData.location,
+    price: formData.price,
     price_formatted: formData.price_formatted,
     beds: formData.beds,
     baths: formData.baths,
     area: formData.area,
     featured: formData.featured,
     is_new: formData.is_new,
+    description: formData.description,
+    status: formData.status,
+    type: formData.type,
+    year_built: formData.year_built,
+    parking: formData.parking,
+    image_alt: formData.title,
     slug,
-    images: [],
-    tags: [],
+    images: formData.images || [],
+    tags: formData.tags || [],
   })
 
   if (error) {
@@ -57,5 +72,54 @@ export async function addProperty(formData: {
   }
 
   revalidatePath('/admin/properties')
+  return { success: true }
+}
+
+export async function updateProperty(propertyId: string, formData: {
+  title: string
+  location: string
+  price: number
+  price_formatted: string
+  beds: number
+  baths: number
+  area: number
+  featured: boolean
+  is_new: boolean
+  description?: string
+  status?: string
+  type?: string
+  year_built?: number
+  parking?: number
+  images?: string[]
+  tags?: string[]
+}) {
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('properties').update({
+    title: formData.title,
+    location: formData.location,
+    price: formData.price,
+    price_formatted: formData.price_formatted,
+    beds: formData.beds,
+    baths: formData.baths,
+    area: formData.area,
+    featured: formData.featured,
+    is_new: formData.is_new,
+    description: formData.description,
+    status: formData.status,
+    type: formData.type,
+    year_built: formData.year_built,
+    parking: formData.parking,
+    image_alt: formData.title,
+    images: formData.images || [],
+    tags: formData.tags || [],
+  }).eq('id', propertyId)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath('/admin/properties')
+  revalidatePath(`/admin/properties/${propertyId}/edit`)
   return { success: true }
 }
