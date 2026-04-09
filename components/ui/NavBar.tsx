@@ -9,23 +9,43 @@ import { createClient } from "@/lib/supabase/client";
 export default function NavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { t } = useLanguage();
   const supabase = createClient();
 
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user?.user_metadata?.avatar_url) {
-        setUserAvatar(session.user.user_metadata.avatar_url);
+      if (session?.user) {
+        if (session.user.user_metadata?.avatar_url) {
+          setUserAvatar(session.user.user_metadata.avatar_url);
+        }
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .single();
+        if (roleData?.role === 'admin') {
+          setIsAdmin(true);
+        }
       }
     };
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user?.user_metadata?.avatar_url) {
-        setUserAvatar(session.user.user_metadata.avatar_url);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        if (session.user.user_metadata?.avatar_url) {
+          setUserAvatar(session.user.user_metadata.avatar_url);
+        }
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .single();
+        setIsAdmin(roleData?.role === 'admin');
       } else {
         setUserAvatar(null);
+        setIsAdmin(false);
       }
     });
 
@@ -69,6 +89,15 @@ export default function NavBar() {
             >
               {t.nav.savedHomes}
             </Link>
+            {isAdmin && (
+              <Link
+                className="text-blue-600 font-medium text-sm hover:border-b-2 hover:border-blue-600/20 px-1 py-1 transition-all flex items-center gap-1"
+                href="/admin"
+              >
+                <span className="material-icons text-[16px]">admin_panel_settings</span>
+                Admin
+              </Link>
+            )}
           </div>
           <div className="flex items-center space-x-4">
             <LanguageSelector />
