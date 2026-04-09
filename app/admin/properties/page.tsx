@@ -1,11 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
-import { DeletePropertyButton } from './property-modals'
+import { ToggleActiveButton } from './property-modals'
 
 const PAGE_SIZE = 8
 
-function StatusBadge({ featured, isNew }: { featured: boolean; isNew: boolean }) {
+function StatusBadge({ featured, isNew, isActive }: { featured: boolean; isNew: boolean; isActive: boolean }) {
+  if (!isActive) {
+    return (
+      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
+        <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-1.5"></span>
+        Inactive
+      </span>
+    )
+  }
   if (featured) {
     return (
       <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#D9ECC8] text-[#006655] border border-[#006655]/10">
@@ -126,8 +134,9 @@ export default async function AdminPropertiesPage({
 
   const totalCount = count || 0
   const totalPages = Math.ceil(totalCount / PAGE_SIZE)
-  const featuredCount = properties?.filter(p => p.featured).length || 0
-  const newCount = properties?.filter(p => p.is_new).length || 0
+  const featuredCount = properties?.filter(p => p.featured && p.is_active).length || 0
+  const newCount = properties?.filter(p => p.is_new && p.is_active).length || 0
+  const inactiveCount = properties?.filter(p => !p.is_active).length || 0
   const rangeStart = from + 1
   const rangeEnd = Math.min(from + (properties?.length || 0), totalCount)
 
@@ -155,7 +164,7 @@ export default async function AdminPropertiesPage({
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white p-5 rounded-xl border border-[#006655]/10 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-500">Total Listings</p>
@@ -181,6 +190,15 @@ export default async function AdminPropertiesPage({
           </div>
           <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
             <span className="material-icons">pending</span>
+          </div>
+        </div>
+        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-500">Inactive</p>
+            <p className="text-2xl font-bold text-[#19322F] mt-1">{inactiveCount}</p>
+          </div>
+          <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+            <span className="material-icons">visibility_off</span>
           </div>
         </div>
       </div>
@@ -246,7 +264,7 @@ export default async function AdminPropertiesPage({
 
             {/* Status */}
             <div className="col-span-6 md:col-span-2">
-              <StatusBadge featured={property.featured} isNew={property.is_new} />
+              <StatusBadge featured={property.featured} isNew={property.is_new} isActive={property.is_active} />
             </div>
 
             {/* Actions */}
@@ -258,7 +276,7 @@ export default async function AdminPropertiesPage({
               >
                 <span className="material-icons text-xl">edit</span>
               </Link>
-              <DeletePropertyButton propertyId={property.id} propertyName={property.title} />
+              <ToggleActiveButton propertyId={property.id} propertyName={property.title} isActive={property.is_active} />
             </div>
           </div>
         ))}

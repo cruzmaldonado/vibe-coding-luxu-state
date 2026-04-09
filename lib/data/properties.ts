@@ -15,6 +15,7 @@ export interface Property {
   tags: string[];
   featured: boolean;
   is_new: boolean;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -36,6 +37,7 @@ export async function getProperties(
   let query = supabase
     .from("properties")
     .select("*", { count: "exact" })
+    .eq("is_active", true)
     .eq("featured", false)
     .order("created_at", { ascending: true })
     .range(from, to);
@@ -67,6 +69,7 @@ export async function getFeaturedProperties(): Promise<Property[]> {
   const { data, error } = await supabase
     .from("properties")
     .select("*")
+    .eq("is_active", true)
     .eq("featured", true)
     .order("created_at", { ascending: true })
     .limit(4);
@@ -87,6 +90,7 @@ export async function getPropertyBySlug(slug: string): Promise<Property | null> 
   const { data, error } = await supabase
     .from("properties")
     .select("*")
+    .eq("is_active", true)
     .eq("slug", slug)
     .single();
 

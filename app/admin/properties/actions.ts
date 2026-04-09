@@ -3,12 +3,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-export async function deleteProperty(propertyId: string) {
+export async function deactivateProperty(propertyId: string) {
   const supabase = await createClient()
 
   const { error } = await supabase
     .from('properties')
-    .delete()
+    .update({ is_active: false })
     .eq('id', propertyId)
 
   if (error) {
@@ -16,6 +16,24 @@ export async function deleteProperty(propertyId: string) {
   }
 
   revalidatePath('/admin/properties')
+  revalidatePath('/')
+  return { success: true }
+}
+
+export async function activateProperty(propertyId: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('properties')
+    .update({ is_active: true })
+    .eq('id', propertyId)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath('/admin/properties')
+  revalidatePath('/')
   return { success: true }
 }
 

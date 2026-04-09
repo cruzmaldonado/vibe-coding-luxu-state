@@ -12,7 +12,7 @@ export default async function Home({
   const resolvedParams = await searchParams;
   const currentPage = Math.max(1, Number(resolvedParams.page) || 1);
 
-  const searchQuery = typeof resolvedParams.q === 'string' ? resolvedParams.q : undefined;
+  const searchQuery = typeof resolvedParams.q === 'string' ? resolvedParams.q.toLowerCase().trim() : undefined;
   const typeQuery = typeof resolvedParams.type === 'string' ? resolvedParams.type : undefined;
 
   const [featuredProperties, { data: newProperties, totalCount }] =
